@@ -1,0 +1,53 @@
+<div class="auth-viewport-wrapper">
+  <div class="auth-card-panel animate-fade">
+    <div class="auth-brand-header">
+      <span class="auth-logo-glyph"></span>
+      <h2 class="auth-title-string">{{ isLoginMode ? 'Sign in to Feeloid' : 'Create your account' }}</h2>
+      <p class="auth-subtitle-string">Optimizing soundtracks for your emotional frequencies</p>
+    </div>
+
+    <form (submit)="handleSubmit($event)" class="auth-form-body">
+      <div class="input-form-group">
+        <label for="username">Username</label>
+        <input 
+          type="text" 
+          id="username" 
+          name="username"
+          [(ngModel)]="username" 
+          placeholder="Enter username" 
+          required 
+          autocomplete="off" />
+      </div>
+
+      <div class="input-form-group">
+        <label for="password">Password</label>
+        <input 
+          type="password" 
+          id="password" 
+          name="password"
+          [(ngModel)]="password" 
+          placeholder="Enter password" 
+          required />
+      </div>
+
+      <div *ngIf="errorMessage" class="auth-error-banner">
+        ⚠️ {{ errorMessage }}
+      </div>
+
+      <div *ngIf="successMessage" class="auth-success-banner">
+        ✅ {{ successMessage }}
+      </div>
+
+      <button type="submit" class="auth-action-submit-btn" [disabled]="isLoading">
+        {{ isLoading ? 'Processing...' : (isLoginMode ? 'Log In' : 'Register Account') }}
+      </button>
+    </form>
+
+    <div class="auth-mode-toggle-footer">
+      <span>{{ isLoginMode ? "New to the platform?" : "Already have an account?" }}</span>
+      <button type="button" class="toggle-mode-link-btn" (click)="toggleAuthMode()">
+        {{ isLoginMode ? 'Register Now' : 'Sign In' }}
+      </button>
+    </div>
+  </div>
+</div>

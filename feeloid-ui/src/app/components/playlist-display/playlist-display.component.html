@@ -1,0 +1,52 @@
+<div class="playlist-container">
+  
+  <div *ngIf="tracks.length === 0" class="empty-state">
+   loading...
+  </div>
+
+  <div *ngIf="tracks.length > 0" class="playlist-table-wrapper">
+    <table class="playlist-table">
+      <thead>
+        <tr>
+          <th class="col-num">#</th>
+          <th>Title</th>
+          <th>Artist</th>
+          <th>Genre</th>
+          <th>Mood</th>
+          <th class="col-action" style="width: 220px; text-align: right; padding-right: 24px;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let track of tracks; let i = index" class="track-row">
+          <td class="col-num index-cell">
+            <span class="row-index-number">{{ i + 1 }}</span>
+          </td>
+          <td class="track-title-cell">
+            <div class="title-block">
+              <span class="material-symbols-outlined inline-track-icon">music_note</span>
+              <span class="title-text">{{ track.title }}</span>
+            </div>
+          </td>
+          <td class="artist-cell">{{ track.artist }}</td>
+          <td><span class="badge genre">{{ track.genre }}</span></td>
+          <td><span class="badge mood">{{ track.moodTag }}</span></td>
+          <td class="col-action">
+            <div style="display: flex; gap: 8px; justify-content: flex-end; align-items: center; padding-right: 16px;">
+              
+              <button class="start-playback-row-btn" (click)="triggerPlay(track)" title="Queue Track">
+                <span class="material-symbols-outlined play-icon">play_arrow</span>
+                <span>Start</span>
+              </button>
+              
+<button class="start-playback-row-btn" (click)="triggerLike(track)" style="border-radius: 20px;">
+  <span class="material-symbols-outlined play-icon" style="margin-right: 4px;">playlist_add</span>
+  <span>Add</span>
+</button>
+              
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -1,0 +1,478 @@
+<div class="master-client-shell">
+  
+  <aside class="sidebar-nav-panel">
+    <div class="brand-header">
+      <div class="minimal-logo">
+        <span class="material-symbols-outlined brand-logo-icon">radio</span>
+      </div>
+      <h1 class="brand-title">Feeloid</h1>
+    </div>
+    
+    <div class="nav-links-cluster">
+      <a class="nav-link-item" [class.active-link]="currentView === 'home'" (click)="navigateToHome()">
+        <span class="material-symbols-outlined nav-icon">home</span> Home
+      </a>
+      
+      <a class="nav-link-item" [class.active-link]="currentView === 'explore'" (click)="navigateToExplore()">
+        <span class="material-symbols-outlined nav-icon">explore</span> Explore
+      </a>
+      
+      <a class="nav-link-item" [class.active-link]="currentView === 'library' || currentView === 'playlist-detail'" (click)="navigateToLibrary()">
+        <span class="material-symbols-outlined nav-icon">library_music</span> Library
+      </a>
+    </div>
+
+    <div class="nav-section-divider"></div>
+    <div class="sidebar-playlists-scroll-box" 
+         style="display: flex; flex-direction: column; gap: 4px; max-height: 200px; overflow-y: auto; margin-bottom: 12px; padding: 0 4px; scrollbar-width: none; -ms-overflow-style: none;">
+      <a *ngFor="let playlist of userPlaylists" 
+         (click)="openPlaylistDetail(playlist)"
+         class="sidebar-playlist-link"
+         [class.active-playlist-link]="activeSelectedPlaylist?.id === playlist.id && currentView === 'playlist-detail'">
+         {{ playlist.name }}
+      </a>
+    </div>
+
+    <button class="action-playlist-btn" (click)="handleCreateNewPlaylistFromSidebar()">
+      <span class="btn-plus-icon">＋</span> New playlist
+    </button>
+  </aside>
+
+  <main class="main-viewport-window">
+    <div class="dashboard-viewport-content">
+
+      <div *ngIf="statusMessage && recommendedTracks.length === 0" class="dashboard-status-toast" style="margin-bottom: 24px; padding: 12px 16px; background-color: #1a1518; border: 1px solid #42181d; border-radius: 6px; color: #ff5252; font-size: 14px; font-weight: 500;">
+        {{ statusMessage }}
+      </div>
+<div class="sidebar-search-box-container" style="padding: 0 4px; margin-bottom: 16px;">
+      <div style="position: relative; display: flex; align-items: center; width: 100%;">
+        <span class="material-symbols-outlined" 
+              style="position: absolute; left: 10px; color: #888888; font-size: 18px; pointer-events: none;">
+          search
+        </span>
+        <input type="text" 
+               placeholder="Search for Songs..." 
+               (keyup.enter)="handleSearch($event)"
+               style="width: 100%; padding: 8px 12px 8px 36px; background-color: #1a1a1a; border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; color: #ffffff; font-size: 13px; outline: none; transition: border-color 0.2s ease;"
+               onfocus="this.style.borderColor='rgba(255,255,255,0.2)'"
+               onblur="this.style.borderColor='rgba(255,255,255,0.08)'" />
+      </div>
+    </div>
+      <div *ngIf="currentView === 'home'" class="home-grid-state animate-fade">
+        
+        <div *ngIf="!selectedMood && !selectedArtist">
+          <header class="genres-page-header" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+            <h2 class="main-page-title">Moods and moments</h2>
+            <button class="sign-out-btn" (click)="triggerLogout()">Sign Out</button>
+          </header>
+
+          <section class="moods-matrix-grid">
+            <button *ngFor="let moodItem of moods" (click)="onMoodSelect(moodItem.text)" class="mood-grid-card">
+              <div class="card-color-stripe" [style.background]="moodItem.gradient"></div>
+              <span class="card-mood-text">{{ moodItem.text }}</span>
+            </button>
+          </section>
+
+          <header class="genres-page-header" style="margin-top: 40px; margin-bottom: 20px;">
+            <h2 class="main-page-title" style="font-size: 24px;">Featured Artists</h2>
+          </header>
+
+          <section style="display: flex; gap: 24px; overflow-x: auto; padding-bottom: 16px; scrollbar-width: none;">
+            <div *ngFor="let artist of artists" (click)="onArtistSelect(artist.name)" 
+                 style="display: flex; flex-direction: column; align-items: center; text-align: center; cursor: pointer; min-width: 120px; transition: transform 0.2s ease;"
+                 onmouseover="this.style.transform='scale(1.05)'"
+                 onmouseout="this.style.transform='scale(1.0)'">
+              
+              <div style="width: 110px; height: 110px; border-radius: 50%; overflow: hidden; margin-bottom: 12px; background-color: #242424; border: 2px solid rgba(255,255,255,0.05); box-shadow: 0 8px 16px rgba(0,0,0,0.3);">
+                <img [src]="'assets/banners/' + artist.file" 
+                     (error)="$any($event.target).src = 'assets/banners/default-artist.jpg'"
+                     style="width: 100%; height: 100%; object-fit: cover;" 
+                     alt="{{ artist.name }}" />
+              </div>
+              
+              <span style="color: #ffffff; font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;">
+                {{ artist.name }}
+              </span>
+              <span style="color: #888888; font-size: 12px; margin-top: 2px;">Artist</span>
+            </div>
+          </section>
+        </div>
+
+        <div *ngIf="selectedMood" class="detail-playlist-state">
+          <button (click)="clearSelectedMood()" class="back-navigation-btn">
+            <span class="material-symbols-outlined back-arrow-icon">arrow_back_ios</span> 
+          </button>
+
+          <header class="playlist-detail-banner">
+            <div class="banner-color-gradient"></div>
+            <div class="banner-text-content">
+              <h1 class="banner-mood-title">{{ selectedMood }}</h1>
+              <p class="banner-description">Personalized AI recommendation stack optimized for your current moment.</p>
+              <div class="banner-metadata-line">Playlist • AI Mood Engine • {{ recommendedTracks.length }} tracks</div>
+            </div>
+          </header>
+          
+          <section class="playlist-tracks-section">
+            <div class="rendered-grid-wrapper">
+              <app-playlist-display 
+              [tracks]="recommendedTracks" 
+              (onPlayTrack)="handleTrackPlay($event)"
+              (onLikeTrack)="openPlaylistModalWorkflow($event)"></app-playlist-display>
+            </div>
+          </section>
+        </div>
+
+        <div *ngIf="selectedArtist" class="detail-playlist-state">
+          <button (click)="clearSelectedArtist()" class="back-navigation-btn">
+            <span class="material-symbols-outlined back-arrow-icon">arrow_back_ios</span> 
+          </button>
+
+          <header class="playlist-detail-banner">
+            <div class="banner-color-gradient" style="background: linear-gradient(135deg, #111111 0%, #2c1e21 100%); border-bottom: 1px solid rgba(255,255,255,0.05);"></div>
+            <div class="banner-text-content">
+              <h1 class="banner-mood-title">{{ selectedArtist }}</h1>
+              <p class="banner-description">Essential tracks and dynamic catalog entries found for {{ selectedArtist }}.</p>
+              <div class="banner-metadata-line">Discography • Spotlight • {{ recommendedTracks.length }} tracks available</div>
+            </div>
+          </header>
+          
+          <section class="playlist-tracks-section">
+            <div class="rendered-grid-wrapper">
+              <app-playlist-display [tracks]="recommendedTracks" 
+              (onPlayTrack)="handleTrackPlay($event)"
+              (onLikeTrack)="openPlaylistModalWorkflow($event)"></app-playlist-display>
+            </div>
+          </section>
+        </div>
+
+      </div>
+<div class="listen-again-section-container" *ngIf="currentView === 'home' && recentTracks.length > 0">
+  <div class="section-header-row">
+    <h2 class="section-main-title">Listen again</h2>
+    <span class="section-subtitle">Your recently played track choices</span>
+  </div>
+
+  <div class="listen-again-grid-carousel">
+    <div 
+      class="listen-again-card" 
+      *ngFor="let track of recentTracks" 
+      (click)="handleListenAgainCardClick(track)"
+      [class.active-playing-card]="currentPlayingTrack?.id === track.id"
+    >
+<div class="card-image-wrapper">
+        <img 
+          [src]="resolveTrackCoverAssetPath(track)" 
+          [alt]="track.title" 
+          class="card-cover-art"
+          onerror="this.src='assets/cover/1.png';"
+        />
+        <div class="card-hover-play-overlay">
+          <span class="material-symbols-outlined play-arrow-icon">
+            {{ currentPlayingTrack?.id === track.id && !isPlaybackSuspended ? 'pause' : 'play_arrow' }}
+          </span>
+        </div>
+      </div>
+
+      <div class="card-metadata-info">
+        <h4 class="track-title-label" [title]="track.title">{{ track.title }}</h4>
+        <p class="track-artist-label">{{ track.artist }}</p>
+      </div>
+    </div>
+  </div>
+</div>
+      <div *ngIf="currentView === 'explore' && !selectedGenre" class="home-grid-state animate-fade">
+        <header class="genres-page-header">
+          <h2 class="main-page-title">Genres</h2>
+        </header>
+
+        <section class="moods-matrix-grid">
+          <button *ngFor="let g of genres" (click)="onGenreSelect(g.text)" class="mood-grid-card">
+            <div class="card-color-stripe" [style.background]="g.gradient"></div>
+            <span class="card-mood-text">{{ g.text }}</span>
+          </button>
+        </section>
+      </div>
+
+      <div *ngIf="currentView === 'explore' && selectedGenre" class="detail-playlist-state animate-fade">
+        <button (click)="clearSelectedGenre()" class="back-navigation-btn">
+          <span class="material-symbols-outlined back-arrow-icon">arrow_back_ios</span> 
+        </button>
+
+        <header class="playlist-detail-banner">
+          <div class="banner-color-gradient" style="background: linear-gradient(45deg, #1f1c2c, #928dab);"></div>
+          <div class="banner-text-content">
+            <h1 class="banner-mood-title">{{ selectedGenre }} Hits</h1>
+            <p class="banner-description">Trending and algorithmic hot list tracking the absolute best in {{ selectedGenre }} music.</p>
+            <div class="banner-metadata-line">Explore Portal • Filter Category • 10 tracks loaded</div>
+          </div>
+        </header>
+
+        <section class="playlist-tracks-section">
+          <div class="rendered-grid-wrapper">
+            <app-playlist-display 
+              [tracks]="recommendedTracks"
+              (onPlayTrack)="handleTrackPlay($event)"
+              (onLikeTrack)="openPlaylistModalWorkflow($event)">
+            </app-playlist-display>
+          </div>
+        </section>
+      </div>
+
+      <div *ngIf="currentView === 'library'" class="home-grid-state animate-fade">
+        <header class="genres-page-header">
+          <h2 class="main-page-title">Your Playlists Library</h2>
+        </header>
+
+        <div *ngIf="userPlaylists.length === 0" class="empty-state" style="color: #888888; padding: 40px 0;">
+          You haven't created any custom collection playlists folders yet. Click "+ New playlist" to build one!
+        </div>
+
+        <section *ngIf="userPlaylists.length > 0" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 24px; margin-top: 24px; width: 100%;">
+          <div *ngFor="let playlist of userPlaylists" (click)="openPlaylistDetail(playlist)" class="playlist-cover-card" 
+               style="display: flex; flex-direction: column; cursor: pointer; position: relative; width: 160px;">
+            
+            <div style="width: 160px; height: 160px; border-radius: 6px; overflow: hidden; position: relative; background-color: #141414; border: 1px solid #222; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+              <img 
+                [src]="'assets/banners/' + (playlist.id || 1) + '.jpeg'" 
+                style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.2s ease;"
+                alt="Playlist Cover"
+                onerror="this.src='assets/banners/1.jpeg'">
+   <button class="playlist-card-delete-btn" (click)="handleDeleteWholePlaylist(playlist, $event)" title="Delete entire playlist">
+  <span class="material-symbols-outlined delete-icon-inner">delete</span>
+</button>
+            </div>
+
+            <span style="color: #ffffff; font-weight: 500; font-size: 0.95rem; margin-top: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;">
+              {{ playlist.name }}
+            </span>
+            <span style="color: #aaa; font-size: 0.8rem; margin-top: 2px;">
+              Playlist
+            </span>
+
+          </div>
+        </section>
+      </div>
+
+      <div *ngIf="currentView === 'playlist-detail' && activeSelectedPlaylist" class="detail-playlist-state animate-fade">
+        <button (click)="navigateToLibrary()" class="back-navigation-btn" style="position: relative; z-index: 10; margin-bottom: 12px;">
+          <span class="material-symbols-outlined back-arrow-icon">arrow_back_ios</span> 
+        </button>
+
+        <header class="premium-yt-banner">
+          <div class="yt-blurred-bg-layer" [style.backgroundImage]="'url(' + getCustomPlaylistCoverPath() + ')'"></div>
+          <div class="yt-dark-overlay-layer"></div>
+          
+          <div class="yt-banner-inner-content">
+            <div class="yt-cover-art-container">
+              <img [src]="getCustomPlaylistCoverPath()" alt="Cover" class="yt-sharp-cover-img" />
+            </div>
+            <div class="yt-text-details-container">
+              <span class="yt-badge-tag-label">USER COLLECTION</span>
+              <h1 class="yt-playlist-main-title">{{ activeSelectedPlaylist.name }}</h1>
+              <p class="yt-playlist-sub-description">{{ activeSelectedPlaylist.description || 'Custom Library Compilation Folder' }}</p>
+              <div class="yt-playlist-metadata-row">Collection Folder • {{ playlistTracks.length }} Tracks available</div>
+            </div>
+          </div>
+        </header>
+
+        <section class="playlist-tracks-section" style="margin-top: 24px;">
+          <div class="playlist-container">
+            <div *ngIf="playlistTracks.length === 0" class="empty-state" style="color: #888888; padding: 32px; text-align: center;">
+              This playlist folder container is currently empty. Go back home or explore to add tracks!
+            </div>
+
+            <div *ngIf="playlistTracks.length > 0" class="playlist-cards-grid-layout" style="display: flex; flex-direction: column; gap: 8px; width: 100%; margin-top: 16px;">
+              <div *ngFor="let song of playlistTracks; let idx = index" class="track-card-row" 
+                   style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background-color: rgba(255, 255, 255, 0.02); border-radius: 6px; border: 1px solid #1a1a1a; transition: background-color 0.2s ease;">
+                
+                <div style="display: flex; align-items: center; gap: 16px; flex-grow: 1;">
+                  <span style="color: #666; font-size: 0.9rem; font-weight: 500; min-width: 24px; text-align: center;">{{ idx + 1 }}</span>
+                  
+                  <div class="inline-track-thumbnail-frame" style="width: 44px; height: 44px; border-radius: 4px; overflow: hidden; background-color: #111; flex-shrink: 0; border: 1px solid #222; display: flex; align-items: center; justify-content: center;">
+                    <img 
+                      [src]="'assets/banners/' + (activeSelectedPlaylist.id || 1) + '.jpeg'" 
+                      style="width: 100%; height: 100%; object-fit: cover;"
+                      alt="Track Art"
+                      onerror="this.src='assets/banners/1.jpeg'">
+                  </div>
+                  
+                  <div style="display: flex; flex-direction: column; gap: 4px;">
+                    <span style="color: #ffffff; font-weight: 500; font-size: 0.95rem; line-height: 1.2;">{{ song.title }}</span>
+                    <span style="color: #b3b3b3; font-size: 0.85rem;">{{ song.artist }}</span>
+                  </div>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 24px; flex-shrink: 0;">
+                  <span class="badge genre" style="padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; background-color: rgba(0, 210, 255, 0.1); color: #00d2ff;">
+                    {{ song.genre }}
+                  </span>
+                  
+                  <div style="display: flex; gap: 8px; align-items: center;">
+                    <button class="start-playback-row-btn" (click)="handleTrackPlay(song)" style="border-radius: 20px;">
+                      <span class="material-symbols-outlined play-icon">play_arrow</span>
+                    </button>
+                    
+<button class="playlist-row-remove-btn" (click)="removeTrackFromActivePlaylist(song)" title="Remove Song">
+  <span class="material-symbols-outlined close-icon-inner">close</span>
+</button>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <footer *ngIf="currentPlayingTrack" class="global-media-playback-dock animation-dock-slide-up">
+        <div class="dock-metadata-block">
+          <div class="dock-album-art-silhouette">
+            <span class="material-symbols-outlined standard-art-placeholder">music_note</span>
+          </div>
+          <div class="dock-text-group">
+            <span class="dock-track-title-string">{{ currentPlayingTrack.title }}</span>
+            <span class="dock-artist-sub-string">{{ currentPlayingTrack.artist }}</span>
+          </div>
+        </div>
+
+        <div class="dock-core-controls-cluster">
+          <button class="media-dock-btn control-glyph-btn" title="Previous Track" (click)="handleTrackRewind()">
+            <span class="material-symbols-outlined">skip_previous</span>
+          </button>
+          <button *ngIf="isPlaybackSuspended" class="media-dock-btn primary-circle-toggle-btn" title="Resume Playback" (click)="togglePlayPauseState()">
+            <span class="material-symbols-outlined play-shape-override">play_arrow</span>
+          </button>
+          <button *ngIf="!isPlaybackSuspended" class="media-dock-btn primary-circle-toggle-btn" title="Pause Playback" (click)="togglePlayPauseState()">
+            <span class="material-symbols-outlined">pause</span>
+          </button>
+          <button class="media-dock-btn control-glyph-btn" title="Next Track" (click)="handleTrackSkip(currentPlayingTrack)">
+            <span class="material-symbols-outlined">skip_next</span>
+          </button>
+        </div>
+
+<div class="dock-utility-interaction-block">
+          <button class="media-dock-btn interaction-glyph-node" title="Like Track" 
+                  (click)="handleTrackLike(currentPlayingTrack)"
+                  [style.color]="currentPlayingTrack && likedSongIds.includes(currentPlayingTrack.id) ? '#ffffff' : '#888888'">
+ <span class="material-symbols-outlined">
+              {{ currentPlayingTrack && likedSongIds.includes(currentPlayingTrack.id) ? 'thumb_up' : 'thumb_up_off_alt' }}
+            </span>
+          </button>
+          
+          <button class="media-dock-btn interaction-glyph-node" title="Dislike Track" (click)="handleTrackDislike(currentPlayingTrack)">
+            <span class="material-symbols-outlined">thumb_down</span>
+          </button>
+          
+          <div class="dock-vertical-divider-line"></div>
+          
+          <button class="media-dock-btn close-audio-engine-btn" title="Close Control Deck" (click)="haltPlayback()">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+
+        <div *ngIf="safePlayerUrl" class="hidden-iframe-isolation-mask">
+          <iframe [src]="safePlayerUrl" width="1px" height="1px" frameborder="0" allow="autoplay; encrypted-media"></iframe>
+        </div>
+      </footer>
+
+    </div>
+  </main>
+<div *ngIf="isPlaylistModalOpen" class="custom-modal-backdrop-mask animate-fade" 
+     style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 9999;">
+  
+  <div class="custom-playlist-picker-card" 
+       style="background-color: #161616; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; width: 420px; max-width: 90%; padding: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 16px;">
+    
+    <div style="display: flex; flex-direction: column; gap: 4px;">
+      <h3 style="color: #ffffff; font-size: 1.15rem; font-weight: 600; margin: 0;">Add to Playlist</h3>
+      <p style="color: #888888; font-size: 0.85rem; margin: 0;">Select a destination folder for <span style="color: #ffffff; font-weight: 500;">"{{ targetModalTrack?.title }}"</span></p>
+    </div>
+
+    <div style="max-height: 240px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 4px; scrollbar-width: thin;">
+      
+      <button (click)="handleModalAction(0, null)" 
+              style="width: 100%; display: flex; align-items: center; gap: 12px; padding: 12px; background: rgba(255,255,255,0.03); border: 1px dashed rgba(255,255,255,0.15); border-radius: 8px; color: #ff1f4b; text-align: left; cursor: pointer; font-size: 0.9rem; font-weight: 500; transition: background 0.2s;"
+              onmouseover="this.style.background='rgba(255,255,255,0.06)'"
+              onmouseout="this.style.background='rgba(255,255,255,0.03)'">
+        <span class="material-symbols-outlined" style="font-size: 20px;">add_circle</span>
+        [Create New Playlist]
+      </button>
+
+      <button *ngFor="let playlist of modalPlaylistsAvailable" 
+              (click)="handleModalAction(1, playlist)"
+              style="width: 100%; display: flex; align-items: center; gap: 12px; padding: 12px; background: #1e1e1e; border: 1px solid rgba(255,255,255,0.04); border-radius: 8px; color: #ffffff; text-align: left; cursor: pointer; font-size: 0.9rem; transition: background 0.2s, border-color 0.2s;"
+              onmouseover="this.style.background='#262626'; this.style.borderColor='rgba(255,255,255,0.1)'"
+              onmouseout="this.style.background='#1e1e1e'; this.style.borderColor='rgba(255,255,255,0.04)'">
+        <span class="material-symbols-outlined" style="color: #aa828a; font-size: 20px;">library_music</span>
+        <span>{{ playlist.name }}</span>
+      </button>
+    </div>
+
+    <div style="display: flex; justify-content: flex-end; margin-top: 8px;">
+      <button (click)="closePlaylistModal()" 
+              style="padding: 10px 20px; background: transparent; border: none; color: #aaaaaa; cursor: pointer; font-size: 0.85rem; font-weight: 500; border-radius: 20px; transition: color 0.2s;"
+              onmouseover="this.style.color='#ffffff'"
+              onmouseout="this.style.color='#aaaaaa'">
+        Cancel
+      </button>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<div class="custom-prompt-overlay" *ngIf="isNewPlaylistModalOpen" (click)="closeNewPlaylistModal()">
+  <div class="custom-prompt-card" (click)="$event.stopPropagation()">
+    <h3 class="custom-prompt-title">Create Playlist</h3>
+    <p class="custom-prompt-subtitle">Enter a Name for your new Playlist</p>
+    
+    <div class="playlist-modal-creation-row">
+      <span class="modal-plus-badge">＋</span>
+      <input 
+        type="text" 
+        class="custom-prompt-field" 
+        placeholder="[Create New Playlist]"
+        [value]="newPlaylistNameInput"
+        (input)="newPlaylistNameInput = $any($event.target).value"
+        (keyup.enter)="submitNewPlaylistWorkflow()"
+        autofocus
+      />
+    </div>
+
+    <div class="custom-prompt-actions">
+      <button class="prompt-btn-text" (click)="closeNewPlaylistModal()">Cancel</button>
+      <button class="prompt-btn-action" (click)="submitNewPlaylistWorkflow()">OK</button>
+    </div>
+  </div>
+</div>
+
+<div class="custom-prompt-overlay" *ngIf="isDeletePlaylistModalOpen" (click)="closeDeletePlaylistModal()">
+  <div class="custom-prompt-card" (click)="$event.stopPropagation()">
+    <h3 class="custom-prompt-title">Delete Playlist</h3>
+    <p class="custom-prompt-subtitle">
+      Are you absolutely sure you want to delete the entire playlist 
+      <span class="highlighted-deletion-target">"{{ playlistTargetedForDeletion?.name }}"</span>? This action cannot be undone.
+    </p>
+
+    <div class="custom-prompt-actions">
+      <button class="prompt-btn-text" (click)="closeDeletePlaylistModal()">Cancel</button>
+      <button class="prompt-btn-danger" (click)="confirmAndExecutePlaylistDeletion()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<div class="custom-prompt-overlay" *ngIf="isRemoveTrackModalOpen" (click)="closeRemoveTrackModal()">
+  <div class="custom-prompt-card" (click)="$event.stopPropagation()">
+    <h3 class="custom-prompt-title">Remove Track</h3>
+    <p class="custom-prompt-subtitle">
+      Are you sure you want to remove 
+      <span class="highlighted-deletion-target">"{{ trackTargetedForRemoval?.title }}"</span> 
+      from your <span class="highlighted-deletion-target">{{ activeSelectedPlaylist?.name }}</span> playlist?
+    </p>
+
+    <div class="custom-prompt-actions">
+      <button class="prompt-btn-text" (click)="closeRemoveTrackModal()">Cancel</button>
+      <button class="prompt-btn-danger" (click)="confirmAndExecuteTrackRemoval()">Remove</button>
+    </div>
+  </div>
+</div>

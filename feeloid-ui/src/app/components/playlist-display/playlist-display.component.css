@@ -1,0 +1,250 @@
+.playlist-container {
+  width: 100%;
+  margin-top: 10px;
+}
+
+.empty-state {
+  padding: 40px;
+  background-color: #0d0d0d;
+  border: 1px dashed #222222;
+  border-radius: 8px;
+  color: #666;
+  font-style: italic;
+  text-align: center;
+}
+
+.playlist-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.playlist-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+/* YouTube Music header style: muted gray uppercase labels */
+.playlist-table th {
+  padding: 10px 16px;
+  color: #aaaaaa;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.8px;
+  font-weight: 600;
+  border-bottom: 1px solid #1c1c1c;
+}
+
+
+.index-cell {
+  color: #707070;
+  font-weight: 500;
+}
+
+.track-title-cell {
+  font-weight: 500;
+}
+
+.title-block {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.inline-track-icon {
+  font-size: 18px !important;
+  color: #707070;
+}
+
+.artist-cell {
+  color: #b3b3b3;
+}
+
+/* Subtle flat tag badges matching your original layout tracking elements */
+.badge {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.badge.genre {
+  background-color: rgba(0, 210, 255, 0.1);
+  color: #00d2ff;
+}
+
+.badge.mood {
+  background-color: rgba(255, 51, 102, 0.1);
+  color: #ff3366;
+}
+
+.col-action {
+  width: 100px;
+  text-align: right;
+}
+
+/* Premium white tracking pill button structure */
+.start-playback-row-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background-color: #ffffff;
+  color: #000000;
+  border: none;
+  border-radius: 16px;
+  padding: 6px 14px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  opacity: 0.9;
+  transition: opacity 0.15s ease, transform 0.1s ease;
+}
+
+.start-playback-row-btn:hover {
+  opacity: 1;
+  transform: scale(1.03);
+}
+
+.play-icon {
+  font-size: 14px !important;
+  font-variation-settings: 'FILL' 1;
+}
+.playlist-container {
+  width: 100%;
+  margin-top: 10px;
+}
+
+.empty-state {
+  padding: 40px;
+  background-color: #0d0d0d;
+  border: 1px dashed #222222;
+  border-radius: 8px;
+  color: #666;
+  font-style: italic;
+  text-align: center;
+}
+
+.playlist-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.playlist-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+/* YouTube Music header style: muted gray uppercase labels */
+.playlist-table th {
+  padding: 10px 16px;
+  color: #aaaaaa;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.8px;
+  font-weight: 600;
+  border-bottom: 1px solid #1c1c1c;
+}
+
+/* Track rows spacing adjustments */
+.playlist-table td {
+  padding: 14px 16px;
+  color: #ffffff;
+  font-size: 0.92rem;
+  border-bottom: 1px solid transparent; /* Remove solid white grid lines */
+}
+
+/* Row Hover micro-interactions */
+.track-row {
+  border-bottom: 1px solid #0f0f0f;
+  transition: background-color 0.15s ease;
+}
+
+.track-row:hover {
+  background-color: rgba(255, 255, 255, 0.04);
+}
+
+.col-num {
+  width: 40px;
+  text-align: center;
+}
+
+.index-cell {
+  color: #707070;
+  font-weight: 500;
+}
+
+.track-title-cell {
+  font-weight: 500;
+}
+
+.title-block {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.inline-track-icon {
+  font-size: 18px !important;
+  color: #707070;
+}
+
+.artist-cell {
+  color: #b3b3b3;
+}
+
+/* Subtle flat tag badges matching your original layout tracking elements */
+.badge {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.badge.genre {
+  background-color: rgba(0, 210, 255, 0.1);
+  color: #00d2ff;
+}
+
+.badge.mood {
+  background-color: rgba(255, 51, 102, 0.1);
+  color: #ff3366;
+}
+
+.col-action {
+  width: 100px;
+  text-align: right;
+}
+
+/* Premium white tracking pill button structure */
+.start-playback-row-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background-color: #ffffff;
+  color: #000000;
+  border: none;
+  border-radius: 16px;
+  padding: 6px 14px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  opacity: 0.9;
+  transition: opacity 0.15s ease, transform 0.1s ease;
+}
+
+.start-playback-row-btn:hover {
+  opacity: 1;
+  transform: scale(1.03);
+}
+
+.play-icon {
+  font-size: 14px !important;
+  font-variation-settings: 'FILL' 1;
+}
