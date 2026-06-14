@@ -37,6 +37,9 @@ export class MoodService {
   }
 
  
+getSongsByTitle(title: string): Observable<Song[]> {
+  return this.http.get<Song[]>(`${this.baseUrl}/playlists/title/${encodeURIComponent(title)}`);
+}
 
 
 logListeningEvent(userId: number, songId: number, moodAtTime: string, isSkip: boolean): Observable<any> {

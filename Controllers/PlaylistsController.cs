@@ -126,6 +126,22 @@ namespace MusicMoodApi.Controllers
 
             return Ok(new { message = "Playlist deleted successfully." });
         }
+[HttpGet("title/{titleQuery}")]
+public async Task<IActionResult> GetTracksByTitle(string titleQuery)
+{
+    try
+    {
+        var sql = "SELECT * FROM Songs WHERE LOWER(Title) LIKE LOWER({0});";
+        var searchPattern = $"%{titleQuery}%";
+        var tracks = await _context.Songs.FromSqlRaw(sql, searchPattern).ToListAsync();
+        return Ok(tracks);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[TITLE SEARCH ERROR]: {ex.Message}");
+        return StatusCode(500, $"Database title search failed: {ex.Message}");
+    }
+}
 
 
         [HttpDelete("{playlistId}/songs/{songId}")]

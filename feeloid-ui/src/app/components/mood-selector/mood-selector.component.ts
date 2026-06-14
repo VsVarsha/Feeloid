@@ -66,6 +66,9 @@ export class MoodSelectorComponent implements OnInit {
   
   selectedMood: string = '';
   selectedGenre: string = ''; 
+   
+searchResultsLabel: string = '';
+
   statusMessage: string = '';
   recommendedTracks: Song[] = []; 
 
@@ -74,7 +77,6 @@ export class MoodSelectorComponent implements OnInit {
   activeSelectedPlaylist: Playlist | null = null;
   playlistTracks: Song[] = [];
 
-  // Tracks IDs of songs that have been liked to persist button highlight state
   likedSongIds: number[] = [];
 
   currentPlayingTrack: Song | null = null;
@@ -144,6 +146,16 @@ export class MoodSelectorComponent implements OnInit {
     this.recommendedTracks = [];
     this.navigateToHome();
   }
+   
+clearSearchResults(): void {
+  this.searchResultsLabel = '';
+  this.recommendedTracks = [];
+  this.searchQuery = '';
+  this.statusMessage = '';
+  this.currentView = 'home';
+  this.cdr.detectChanges();
+}
+
 
   ngOnInit(): void {
     this.loadSidebarPlaylists();
@@ -154,9 +166,9 @@ export class MoodSelectorComponent implements OnInit {
   this.moodService.getRecentlyPlayed(this.getActiveUserId(), 1).subscribe({
     next: (songs: Song[]) => {
       if (songs && songs.length > 0) {
-        this.currentPlayingTrack = songs[0];  // show in dock
-        this.isPlaybackSuspended = true;       // paused — no audio
-        this.safePlayerUrl = null;             // no iframe loaded
+        this.currentPlayingTrack = songs[0]; 
+        this.isPlaybackSuspended = true;       
+        this.safePlayerUrl = null;             
         this.cdr.detectChanges();
       }
     },
@@ -579,6 +591,7 @@ searchQuery: string = '';
       this.recommendedTracks = [];
       this.selectedArtist = '';
       this.selectedGenre = '';
+       this.searchResultsLabel = '';
       this.selectedMood = '';
       this.currentView = 'home';
       this.cdr.detectChanges();
@@ -616,97 +629,68 @@ searchQuery: string = '';
           this.cdr.detectChanges();
         } else {
    
-          this.moodService.getSongsByStrictGenre(finalGenreQuery).subscribe({
-            next: (genreSongs: Song[]) => {
-              if (genreSongs && genreSongs.length > 0) {
-                this.recommendedTracks = genreSongs;
-                this.statusMessage = '';
-                this.currentView = 'explore';
-                this.selectedGenre = matchedGenreDef ? matchedGenreDef.text : finalGenreQuery;
-                this.selectedMood = '';
-                this.selectedArtist = '';
-                this.cdr.detectChanges();
-              } else {
-               
-                this.moodService.getRecommendations(this.getActiveUserId()).subscribe({
-                  next: (allRecommendations: Song[]) => {
-                   
-                    const titleMatches = allRecommendations.filter(song => 
-                      song.title?.toLowerCase().includes(lowerQuery) ||
-                      song.artist?.toLowerCase().includes(lowerQuery)
-                    );
 
-                    if (titleMatches && titleMatches.length > 0) {
-                      this.recommendedTracks = titleMatches;
-                      this.statusMessage = '';
-                      this.currentView = 'home';
-                      this.selectedArtist = titleMatches[0].artist;
-                      this.selectedMood = '';
-                      this.selectedGenre = '';
-                    } else {
-                     
-                    
-                      this.moodService.getSongsByStrictGenre('Pop').subscribe({
-                        next: (popSongs: Song[]) => {
-                          const deepTitleMatches = popSongs.filter(song => 
-                            song.title?.toLowerCase().includes(lowerQuery) ||
-                            song.artist?.toLowerCase().includes(lowerQuery)
-                          );
+this.moodService.getSongsByStrictGenre(finalGenreQuery).subscribe({
+  next: (genreSongs: Song[]) => {
+    if (genreSongs && genreSongs.length > 0) {
+      this.recommendedTracks = genreSongs;
+      this.statusMessage = '';
+      this.currentView = 'explore';
+      this.selectedGenre = matchedGenreDef ? matchedGenreDef.text : finalGenreQuery;
+      this.selectedMood = '';
+      this.selectedArtist = '';
+      this.cdr.detectChanges();
+    } else {
+      // FINAL FALLBACK — search song titles across the ENTIRE database
+      this.moodService.getSongsByTitle(this.searchQuery).subscribe({
+        next: (titleSongs: Song[]) => {
+          if (titleSongs && titleSongs.length > 0) {
+            this.recommendedTracks = titleSongs;
+            this.statusMessage = '';
+            this.currentView = 'home';
+            this.selectedArtist = '';
+            this.selectedMood = '';
+            this.selectedGenre = '';
+            this.searchResultsLabel = this.searchQuery;
+          } else {
+            this.recommendedTracks = [];
+            this.statusMessage = `No tracks found matching "${this.searchQuery}".`;
+          }
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          this.recommendedTracks = [];
+          this.statusMessage = `No tracks found matching "${this.searchQuery}".`;
+          this.cdr.detectChanges();
+        }
+      });
+    }
+  },
+  error: () => {
 
-                          if (deepTitleMatches && deepTitleMatches.length > 0) {
-                            this.recommendedTracks = deepTitleMatches;
-                            this.statusMessage = '';
-                            this.currentView = 'home';
-                            this.selectedArtist = deepTitleMatches[0].artist;
-                            this.selectedMood = '';
-                            this.selectedGenre = '';
-                          } else {
-                          
-                            this.moodService.getSongsByStrictGenre('Energetic').subscribe({
-                              next: (chillSongs: Song[]) => {
-                                const chillTitleMatches = chillSongs.filter(song => 
-                                  song.title?.toLowerCase().includes(lowerQuery)
-                                );
-                                if (chillTitleMatches && chillTitleMatches.length > 0) {
-                                  this.recommendedTracks = chillTitleMatches;
-                                  this.statusMessage = '';
-                                  this.currentView = 'home';
-                                  this.selectedArtist = chillTitleMatches[0].artist;
-                                  this.selectedMood = '';
-                                  this.selectedGenre = '';
-                                } else {
-                                  this.statusMessage = `No tracks found matching "${this.searchQuery}".`;
-                                }
-                                this.cdr.detectChanges();
-                              },
-                              error: () => {
-                                this.statusMessage = `No tracks found matching "${this.searchQuery}".`;
-                                this.cdr.detectChanges();
-                              }
-                            });
-                          }
-                          this.cdr.detectChanges();
-                        },
-                        error: () => {
-                          this.statusMessage = `No tracks found matching "${this.searchQuery}".`;
-                          this.cdr.detectChanges();
-                        }
-                      });
-                    }
-                    this.cdr.detectChanges();
-                  },
-                  error: () => {
-                    this.statusMessage = `No tracks found matching "${this.searchQuery}".`;
-                    this.cdr.detectChanges();
-                  }
-                });
-              }
-            },
-            error: () => {
-              this.statusMessage = `No tracks found matching "${this.searchQuery}".`;
-              this.cdr.detectChanges();
-            }
-          });
+    this.moodService.getSongsByTitle(this.searchQuery).subscribe({
+      next: (titleSongs: Song[]) => {
+        if (titleSongs && titleSongs.length > 0) {
+          this.recommendedTracks = titleSongs;
+          this.statusMessage = '';
+          this.currentView = 'home';
+          this.selectedArtist = '';
+          this.selectedMood = '';
+          this.selectedGenre = '';
+        } else {
+          this.recommendedTracks = [];
+          this.statusMessage = `No tracks found matching "${this.searchQuery}".`;
+        }
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.recommendedTracks = [];
+        this.statusMessage = `No tracks found matching "${this.searchQuery}".`;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+});
         }
       },
       error: (err) => {
@@ -883,7 +867,7 @@ fetchListeningHistoryMetrics(): void {
   
     this.handleTrackPlay(track);
     
-    // 2. Refresh local state structures so the clicked track jumps to position 1
+    //  Refresh local state structures so the clicked track jumps to position 1
     this.fetchListeningHistoryMetrics();
     
     this.moodService.logListeningEvent(
