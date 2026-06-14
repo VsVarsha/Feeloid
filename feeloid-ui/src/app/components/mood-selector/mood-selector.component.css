@@ -1122,24 +1122,7 @@
   from { transform: translateY(100%); }
   to { transform: translateY(0); }
 }
-/* Custom premium style for the logout action button */
-.sign-out-btn {
-  background-color: #000000; 
-  color: #aaaaaa;             
-  border: 1px solid #333333;  
-  border-radius: 20px;       
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
-}
 
-
-.sign-out-btn:hover {
-  background-color: #ffffff; 
-  color: #000000;             
-  border-color: #ffffff;     
-}
 
 /* Core View Frame Positioning rules */
 .master-client-shell {
@@ -1851,4 +1834,122 @@
 .close-icon-inner {
   color: #ff5252;
   font-size: 18px;
+}
+
+
+.liked-songs-link {
+  font-weight: 600;
+  color: #ffffff !important;
+}
+
+.liked-songs-link:hover {
+  background-color: rgba(255, 59, 92, 0.12) !important;
+}
+
+.liked-songs-link.active-playlist-link {
+  background-color: rgba(255, 59, 92, 0.18) !important;
+}
+/* ════════════════════════════════════════════════════════════════
+   ADD to mood-selector.component.css
+   Profile icon + dropdown menu styling
+   ════════════════════════════════════════════════════════════════ */
+
+.profile-menu-wrapper {
+  position: absolute;
+  top: 24px;
+  right: 32px;
+  z-index: 100;
+}
+
+/* Circular avatar button */
+.profile-avatar-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ff3b5c, #ff7b54);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.2s ease, transform 0.15s ease;
+}
+
+.profile-avatar-btn:hover {
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: scale(1.05);
+}
+
+.profile-avatar-initial {
+  color: #ffffff;
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-family: inherit;
+}
+
+/* Dropdown panel */
+.profile-dropdown-panel {
+  position: absolute;
+  top: 50px;
+  right: 0;
+  width: 200px;
+  background: #1a1a1a;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  animation: profileDropdownFade 0.15s ease;
+}
+
+@keyframes profileDropdownFade {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.profile-dropdown-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+}
+
+.profile-dropdown-icon {
+  font-size: 28px;
+  color: #aaaaaa;
+}
+
+.profile-dropdown-username {
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.profile-dropdown-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
+  margin: 0;
+}
+
+.profile-dropdown-signout-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 16px;
+  background: transparent;
+  border: none;
+  color: #ff5252;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.15s ease;
+}
+
+.profile-dropdown-signout-btn:hover {
+  background-color: rgba(255, 82, 82, 0.1);
 }

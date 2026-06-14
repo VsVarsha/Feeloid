@@ -248,6 +248,31 @@ export class MoodSelectorComponent implements OnInit {
     });
   }
 
+isProfileMenuOpen: boolean = false;
+
+
+get currentUsername(): string {
+  return this.authService.currentUsername() ?? 'User';
+}
+
+
+get currentUserInitial(): string {
+  const name = this.currentUsername;
+  return name.charAt(0).toUpperCase();
+}
+
+
+toggleProfileMenu(event: Event): void {
+  event.stopPropagation();
+  this.isProfileMenuOpen = !this.isProfileMenuOpen;
+  this.cdr.detectChanges();
+}
+
+
+closeProfileMenu(): void {
+  this.isProfileMenuOpen = false;
+  this.cdr.detectChanges();
+}
   clearSelectedGenre(): void {
     this.selectedGenre = '';
     this.recommendedTracks = [];
@@ -320,13 +345,22 @@ export class MoodSelectorComponent implements OnInit {
   playlistTargetedForDeletion: Playlist | null = null;
 
   
-  handleDeleteWholePlaylist(playlist: Playlist, event: Event): void {
-    event.stopPropagation(); 
 
-    this.playlistTargetedForDeletion = playlist;
-    this.isDeletePlaylistModalOpen = true;
+handleDeleteWholePlaylist(playlist: Playlist, event: Event): void {
+  event.stopPropagation();
+ 
+  // Liked Songs can never be deleted
+  if (this.isLikedSongsPlaylist(playlist)) {
+    this.statusMessage = `"Liked Songs" can't be deleted.`;
     this.cdr.detectChanges();
+    return;
   }
+ 
+  this.playlistTargetedForDeletion = playlist;
+  this.isDeletePlaylistModalOpen = true;
+  this.cdr.detectChanges();
+}
+
 
   confirmAndExecutePlaylistDeletion(): void {
     if (!this.playlistTargetedForDeletion) {
@@ -409,6 +443,15 @@ export class MoodSelectorComponent implements OnInit {
     }
     return 'assets/banners/default-playlist.jpeg';
   }
+  get sortedPlaylistsForDisplay(): Playlist[] {
+  const liked = this.userPlaylists.find(p => this.isLikedSongsPlaylist(p));
+  const others = this.userPlaylists.filter(p => !this.isLikedSongsPlaylist(p));
+  return liked ? [liked, ...others] : others;
+}
+
+isLikedSongsPlaylist(playlist: Playlist): boolean {
+  return playlist.name.trim().toLowerCase() === 'liked songs';
+}
 
   clearSelectedMood(): void {
     this.selectedMood = '';

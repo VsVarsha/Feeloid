@@ -23,15 +23,19 @@
     </div>
 
     <div class="nav-section-divider"></div>
-    <div class="sidebar-playlists-scroll-box" 
-         style="display: flex; flex-direction: column; gap: 4px; max-height: 200px; overflow-y: auto; margin-bottom: 12px; padding: 0 4px; scrollbar-width: none; -ms-overflow-style: none;">
-      <a *ngFor="let playlist of userPlaylists" 
-         (click)="openPlaylistDetail(playlist)"
-         class="sidebar-playlist-link"
-         [class.active-playlist-link]="activeSelectedPlaylist?.id === playlist.id && currentView === 'playlist-detail'">
-         {{ playlist.name }}
-      </a>
-    </div>
+<div class="sidebar-playlists-scroll-box"
+     style="display: flex; flex-direction: column; gap: 4px; max-height: 200px; overflow-y: auto; margin-bottom: 12px; padding: 0 4px; scrollbar-width: none; -ms-overflow-style: none;">
+  <a *ngFor="let playlist of sortedPlaylistsForDisplay"
+     (click)="openPlaylistDetail(playlist)"
+     class="sidebar-playlist-link"
+     [class.liked-songs-link]="isLikedSongsPlaylist(playlist)"
+     [class.active-playlist-link]="activeSelectedPlaylist?.id === playlist.id && currentView === 'playlist-detail'">
+
+     <span *ngIf="isLikedSongsPlaylist(playlist)" class="material-symbols-outlined liked-heart-icon" style="font-size: 16px; vertical-align: middle; margin-right: 6px; color: #ff3b5c;">favorite</span>
+
+     {{ playlist.name }}
+  </a>
+</div>
 
     <button class="action-playlist-btn" (click)="handleCreateNewPlaylistFromSidebar()">
       <span class="btn-plus-icon">＋</span> New playlist
@@ -44,7 +48,7 @@
       <div *ngIf="statusMessage && recommendedTracks.length === 0" class="dashboard-status-toast" style="margin-bottom: 24px; padding: 12px 16px; background-color: #1a1518; border: 1px solid #42181d; border-radius: 6px; color: #ff5252; font-size: 14px; font-weight: 500;">
         {{ statusMessage }}
       </div>
-<div class="sidebar-search-box-container" style="padding: 0 4px; margin-bottom: 16px;">
+<div class="sidebar-search-box-container" style="padding: 0 4px; margin-bottom: 16px; margin-top: 56px;">
       <div style="position: relative; display: flex; align-items: center; width: 100%;">
         <span class="material-symbols-outlined" 
               style="position: absolute; left: 10px; color: #888888; font-size: 18px; pointer-events: none;">
@@ -58,12 +62,32 @@
                onblur="this.style.borderColor='rgba(255,255,255,0.08)'" />
       </div>
     </div>
+    <div class="profile-menu-wrapper" (click)="$event.stopPropagation()">
+
+
+  <button class="profile-avatar-btn" (click)="toggleProfileMenu($event)">
+    <span class="profile-avatar-initial">{{ currentUserInitial }}</span>
+  </button>
+
+
+  <div *ngIf="isProfileMenuOpen" class="profile-dropdown-panel">
+    <div class="profile-dropdown-header">
+      <span class="material-symbols-outlined profile-dropdown-icon">account_circle</span>
+      <span class="profile-dropdown-username">{{ currentUsername }}</span>
+    </div>
+    <div class="profile-dropdown-divider"></div>
+    <button class="profile-dropdown-signout-btn" (click)="triggerLogout()">
+      <span class="material-symbols-outlined" style="font-size: 18px;">logout</span>
+      Sign Out
+    </button>
+  </div>
+</div>
       <div *ngIf="currentView === 'home'" class="home-grid-state animate-fade">
         
         <div *ngIf="!selectedMood && !selectedArtist">
           <header class="genres-page-header" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
             <h2 class="main-page-title">Moods and moments</h2>
-            <button class="sign-out-btn" (click)="triggerLogout()">Sign Out</button>
+           
           </header>
 
           <section class="moods-matrix-grid">
@@ -85,7 +109,7 @@
               
               <div style="width: 110px; height: 110px; border-radius: 50%; overflow: hidden; margin-bottom: 12px; background-color: #242424; border: 2px solid rgba(255,255,255,0.05); box-shadow: 0 8px 16px rgba(0,0,0,0.3);">
                 <img [src]="'assets/banners/' + artist.file" 
-                     (error)="$any($event.target).src = 'assets/banners/default-artist.jpg'"
+                     (error)="$any($event.target).src = 'assets/banners/default-artist.jpeg'"
                      style="width: 100%; height: 100%; object-fit: cover;" 
                      alt="{{ artist.name }}" />
               </div>
@@ -227,30 +251,39 @@
           You haven't created any custom collection playlists folders yet. Click "+ New playlist" to build one!
         </div>
 
-        <section *ngIf="userPlaylists.length > 0" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 24px; margin-top: 24px; width: 100%;">
-          <div *ngFor="let playlist of userPlaylists" (click)="openPlaylistDetail(playlist)" class="playlist-cover-card" 
-               style="display: flex; flex-direction: column; cursor: pointer; position: relative; width: 160px;">
-            
-            <div style="width: 160px; height: 160px; border-radius: 6px; overflow: hidden; position: relative; background-color: #141414; border: 1px solid #222; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
-              <img 
-                [src]="'assets/banners/' + (playlist.id || 1) + '.jpeg'" 
-                style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.2s ease;"
-                alt="Playlist Cover"
-                onerror="this.src='assets/banners/1.jpeg'">
-   <button class="playlist-card-delete-btn" (click)="handleDeleteWholePlaylist(playlist, $event)" title="Delete entire playlist">
-  <span class="material-symbols-outlined delete-icon-inner">delete</span>
-</button>
-            </div>
+<section *ngIf="userPlaylists.length > 0" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 24px; margin-top: 24px; width: 100%;">
+  <div *ngFor="let playlist of sortedPlaylistsForDisplay" (click)="openPlaylistDetail(playlist)" class="playlist-cover-card"
+       style="display: flex; flex-direction: column; cursor: pointer; position: relative; width: 160px;">
 
-            <span style="color: #ffffff; font-weight: 500; font-size: 0.95rem; margin-top: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;">
-              {{ playlist.name }}
-            </span>
-            <span style="color: #aaa; font-size: 0.8rem; margin-top: 2px;">
-              Playlist
-            </span>
+    <div style="width: 160px; height: 160px; border-radius: 6px; overflow: hidden; position: relative; background-color: #141414; border: 1px solid #222; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
 
-          </div>
-        </section>
+      <!-- Liked Songs gets a special gradient + heart cover instead of banner image -->
+      <div *ngIf="isLikedSongsPlaylist(playlist)"
+           style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #450af5, #c4efd9);">
+        <span class="material-symbols-outlined" style="font-size: 56px; color: #ffffff;">favorite</span>
+      </div>
+
+      <!-- All other playlists use the banner image as before -->
+      <img *ngIf="!isLikedSongsPlaylist(playlist)"
+        [src]="'assets/banners/' + (playlist.id || 1) + '.jpeg'"
+        style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.2s ease;"
+        alt="Playlist Cover"
+        onerror="this.src='assets/banners/1.jpg'">
+
+      <!-- Delete button only shows for non-Liked-Songs playlists -->
+      <button *ngIf="!isLikedSongsPlaylist(playlist)" class="playlist-card-delete-btn" (click)="handleDeleteWholePlaylist(playlist, $event)" title="Delete entire playlist">
+        <span class="material-symbols-outlined delete-icon-inner">delete</span>
+      </button>
+    </div>
+
+    <span style="color: #ffffff; font-weight: 500; font-size: 0.95rem; margin-top: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;">
+      {{ playlist.name }}
+    </span>
+    <span style="color: #aaa; font-size: 0.8rem; margin-top: 2px;">
+      {{ isLikedSongsPlaylist(playlist) ? 'Auto Playlist' : 'Playlist' }}
+    </span>
+  </div>
+</section>
       </div>
 
       <div *ngIf="currentView === 'playlist-detail' && activeSelectedPlaylist" class="detail-playlist-state animate-fade">

@@ -83,46 +83,62 @@ namespace MusicMoodApi.Controllers
         {
             try
             {
-                
-                var recentSongs = _context.ListeningHistory
+               
+ 
+                //  Raw history rows for this user, ordered by timestamp
+                var rawHistory = _context.ListeningHistory
                     .Where(h => h.UserId == userId && !h.IsSkip)
                     .OrderByDescending(h => h.Timestamp)
-                    .Join(_context.Songs,
+                    .ToList();
+ 
+                
+ 
+                //  Join with Songs
+                var joined = rawHistory
+                    .Join(_context.Songs.ToList(),
                           h => h.SongId,
                           s => s.Id,
                           (h, s) => new {
-                              s.Id,
-                              s.Title,
-                              s.Artist,
-                              s.Genre,
-                              s.BPM,
-                              s.MoodTag,
-                              s.youTubeId,
+                              s.Id, s.Title, s.Artist, s.Genre,
+                              s.BPM, s.MoodTag, s.youTubeId,
                               h.Timestamp
                           })
-                    // Distinct by song ID — keep only the most recent play of each song
+                    .ToList();
+ 
+                
+                
+ 
+                //  Group by song Id, pick most recent play
+                var grouped = joined
                     .GroupBy(x => x.Id)
-                    .Select(g => g.First())
+                    .Select(g => g.OrderByDescending(x => x.Timestamp).First())
+                    .ToList();
+ 
+               
+ 
+                //  Final sort 
+                var finalResult = grouped
+                    .OrderByDescending(x => x.Timestamp)
                     .Take(limit)
                     .ToList();
-
-                // Map to Song-compatible shape for Angular
-                var result = recentSongs.Select(s => new {
-                    id       = s.Id,
-                    title    = s.Title,
-                    artist   = s.Artist,
-                    genre    = s.Genre,
-                    bpm      = s.BPM,
-                    moodTag  = s.MoodTag,
+ 
+               
+               
+                var result = finalResult.Select(s => new {
+                    id        = s.Id,
+                    title     = s.Title,
+                    artist    = s.Artist,
+                    genre     = s.Genre,
+                    bpm       = s.BPM,
+                    moodTag   = s.MoodTag,
                     youTubeId = s.youTubeId
                 });
-
+ 
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                Console.WriteLine("======= HISTORY FETCH ERROR =======");
-                Console.WriteLine(ex.Message);
+               
                 return StatusCode(500, new { error = "Failed to fetch recent history.", details = ex.Message });
             }
         }
