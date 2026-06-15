@@ -554,7 +554,7 @@ handleTrackPlay(track: Song): void {
         error: (err) => console.error('Failed to append track to Liked Songs playlist:', err)
       });
     } else {
-      // Create the "Liked Songs" playlist folder container fresh
+      // Create the Liked Songs fresh
       this.playlistService.createPlaylist({
         name: 'Liked Songs',
         description: 'Your favorite compilation entries',
@@ -641,7 +641,7 @@ this.moodService.getSongsByStrictGenre(finalGenreQuery).subscribe({
       this.selectedArtist = '';
       this.cdr.detectChanges();
     } else {
-      // FINAL FALLBACK — search song titles across the ENTIRE database
+      // search song titles across the ENTIRE database
       this.moodService.getSongsByTitle(this.searchQuery).subscribe({
         next: (titleSongs: Song[]) => {
           if (titleSongs && titleSongs.length > 0) {

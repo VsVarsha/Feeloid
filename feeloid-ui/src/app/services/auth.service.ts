@@ -11,13 +11,13 @@ export class AuthService {
   private currentUserIdSignal = signal<number | null>(null);
   private currentUsernameSignal = signal<string | null>(null);
 
-  // Read-only public references for components to bind to
+
   currentUserId = computed(() => this.currentUserIdSignal());
   currentUsername = computed(() => this.currentUsernameSignal());
   isLoggedIn = computed(() => this.currentUserIdSignal() !== null);
 
   constructor(private http: HttpClient, private router: Router) {
-    // verify if a session already exists in local storage
+
     const savedId = localStorage.getItem('music_user_id');
     const savedName = localStorage.getItem('music_username');
     
@@ -35,11 +35,11 @@ export class AuthService {
     return this.http.post<{ message: string, userId: number, username: string }>(`${this.apiUrl}/login`, { username, password })
       .pipe(
         tap(response => {
-          // Persist user context markers into local storage cache pools
+
           localStorage.setItem('music_user_id', response.userId.toString());
           localStorage.setItem('music_username', response.username);
           
-          // Update signals immediately to alert application components
+
           this.currentUserIdSignal.set(response.userId);
           this.currentUsernameSignal.set(response.username);
         })
