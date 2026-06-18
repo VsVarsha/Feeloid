@@ -138,10 +138,13 @@
           
           <section class="playlist-tracks-section">
             <div class="rendered-grid-wrapper">
-              <app-playlist-display 
-              [tracks]="recommendedTracks" 
-              (onPlayTrack)="handleTrackPlay($event)"
-              (onLikeTrack)="openPlaylistModalWorkflow($event)"></app-playlist-display>
+<app-playlist-display
+  [tracks]="recommendedTracks"
+  [currentPlayingTrackId]="currentPlayingTrack?.id ?? null"
+  [isPlaybackSuspended]="isPlaybackSuspended"
+  (onPlayTrack)="handleTrackPlay($event)"
+  (onLikeTrack)="openPlaylistModalWorkflow($event)">
+</app-playlist-display>
             </div>
           </section>
         </div>
@@ -162,9 +165,13 @@
           
           <section class="playlist-tracks-section">
             <div class="rendered-grid-wrapper">
-              <app-playlist-display [tracks]="recommendedTracks" 
-              (onPlayTrack)="handleTrackPlay($event)"
-              (onLikeTrack)="openPlaylistModalWorkflow($event)"></app-playlist-display>
+<app-playlist-display
+  [tracks]="recommendedTracks"
+  [currentPlayingTrackId]="currentPlayingTrack?.id ?? null"
+  [isPlaybackSuspended]="isPlaybackSuspended"
+  (onPlayTrack)="handleTrackPlay($event)"
+  (onLikeTrack)="openPlaylistModalWorkflow($event)">
+</app-playlist-display>
             </div>
           </section>
         </div>
@@ -184,9 +191,13 @@
 
   <section class="playlist-tracks-section">
     <div class="rendered-grid-wrapper">
-      <app-playlist-display [tracks]="recommendedTracks"
-        (onPlayTrack)="handleTrackPlay($event)"
-        (onLikeTrack)="openPlaylistModalWorkflow($event)"></app-playlist-display>
+<app-playlist-display
+  [tracks]="recommendedTracks"
+  [currentPlayingTrackId]="currentPlayingTrack?.id ?? null"
+  [isPlaybackSuspended]="isPlaybackSuspended"
+  (onPlayTrack)="handleTrackPlay($event)"
+  (onLikeTrack)="openPlaylistModalWorkflow($event)">
+</app-playlist-display>
     </div>
   </section>
 </div>
@@ -255,11 +266,13 @@
 
         <section class="playlist-tracks-section">
           <div class="rendered-grid-wrapper">
-            <app-playlist-display 
-              [tracks]="recommendedTracks"
-              (onPlayTrack)="handleTrackPlay($event)"
-              (onLikeTrack)="openPlaylistModalWorkflow($event)">
-            </app-playlist-display>
+<app-playlist-display
+  [tracks]="recommendedTracks"
+  [currentPlayingTrackId]="currentPlayingTrack?.id ?? null"
+  [isPlaybackSuspended]="isPlaybackSuspended"
+  (onPlayTrack)="handleTrackPlay($event)"
+  (onLikeTrack)="openPlaylistModalWorkflow($event)">
+</app-playlist-display>
           </div>
         </section>
       </div>
@@ -380,12 +393,14 @@
 
       <footer *ngIf="currentPlayingTrack" class="global-media-playback-dock animation-dock-slide-up">
         <div class="dock-metadata-block">
+
           <div class="dock-album-art-silhouette">
             <span class="material-symbols-outlined standard-art-placeholder">music_note</span>
           </div>
           <div class="dock-text-group">
             <span class="dock-track-title-string">{{ currentPlayingTrack.title }}</span>
             <span class="dock-artist-sub-string">{{ currentPlayingTrack.artist }}</span>
+             <span class="dock-time-inline">{{ formatTime(currentPlaybackTime) }} / {{ formatTime(totalTrackDuration) }}</span>
           </div>
         </div>
 
@@ -402,6 +417,11 @@
           <button class="media-dock-btn control-glyph-btn" title="Next Track" (click)="handleTrackSkip(currentPlayingTrack)">
             <span class="material-symbols-outlined">skip_next</span>
           </button>
+            <div class="dock-top-progress-track" (click)="seekToClickPosition($event)">
+    <div class="dock-top-progress-fill"
+         [style.width.%]="totalTrackDuration > 0 ? (currentPlaybackTime / totalTrackDuration * 100) : 0">
+    </div>
+  </div>
         </div>
 
 <div class="dock-utility-interaction-block">
@@ -424,9 +444,9 @@
           </button>
         </div>
 
-        <div *ngIf="safePlayerUrl" class="hidden-iframe-isolation-mask">
-          <iframe [src]="safePlayerUrl" width="1px" height="1px" frameborder="0" allow="autoplay; encrypted-media"></iframe>
-        </div>
+<div class="hidden-iframe-isolation-mask">
+  <div id="yt-hidden-player"></div>
+</div>
       </footer>
 
     </div>

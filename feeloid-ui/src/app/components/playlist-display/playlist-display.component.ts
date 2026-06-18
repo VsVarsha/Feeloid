@@ -13,7 +13,17 @@ import { PlaylistService, Playlist } from '../../services/playlist.service';
 export class PlaylistDisplayComponent {
   @Input() tracks: Song[] = []; 
   @Input() currentUserId: number = 1;
-  
+  @Input() currentPlayingTrackId: number | null = null;
+@Input() isPlaybackSuspended: boolean = false;
+
+
+isCurrentlyPlaying(track: Song): boolean {
+  return this.currentPlayingTrackId === track.id && !this.isPlaybackSuspended;
+}
+
+isCurrentTrack(track: Song): boolean {
+  return this.currentPlayingTrackId === track.id;
+}
   @Output() onPlayTrack = new EventEmitter<Song>();
   @Output() onLikeTrack = new EventEmitter<Song>();
   @Output() onSkipTrack = new EventEmitter<Song>(); 

@@ -1,4 +1,4 @@
-import { Component, ChangeDetectorRef, ViewEncapsulation, OnInit } from '@angular/core';
+import { Component, ChangeDetectorRef, ViewEncapsulation, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { MoodService } from '../../services/mood.service';
@@ -16,7 +16,7 @@ import { Router } from '@angular/router';
   styleUrls: ['./mood-selector.component.css'],
   encapsulation: ViewEncapsulation.None 
 })
-export class MoodSelectorComponent implements OnInit {
+export class MoodSelectorComponent implements OnDestroy, OnInit {
   moods = [
     { text: 'Energetic', gradient: 'linear-gradient(180deg, #ff1f4b, #ff007f)' }, 
     { text: 'Calm',      gradient: 'linear-gradient(180deg, #00f2fe, #4facfe)' }, 
@@ -82,7 +82,10 @@ searchResultsLabel: string = '';
   currentPlayingTrack: Song | null = null;
   safePlayerUrl: SafeResourceUrl | null = null;
   isPlaybackSuspended: boolean = false; 
-
+currentPlaybackTime: number = 0;
+totalTrackDuration: number = 0;
+private ytPlayer: any = null;
+private progressInterval: any = null;
   constructor(
     private moodService: MoodService,
     private authService: AuthService, 
@@ -95,7 +98,23 @@ searchResultsLabel: string = '';
       this.router.navigate(['/login']);
     }
   }
-
+private loadYouTubeApi(): void {
+  if ((window as any).YT) return;
+  const tag = document.createElement('script');
+  tag.src = 'https://www.youtube.com/iframe_api';
+  document.body.appendChild(tag);
+}
+seekToClickPosition(event: MouseEvent): void {
+  if (!this.ytPlayer || !this.totalTrackDuration) return;
+  const track = event.currentTarget as HTMLElement;
+  const rect = track.getBoundingClientRect();
+  const clickX = event.clientX - rect.left;
+  const percentage = clickX / rect.width;
+  const seekTime = percentage * this.totalTrackDuration;
+  this.ytPlayer.seekTo(seekTime, true);
+  this.currentPlaybackTime = seekTime;
+  this.cdr.detectChanges();
+}
   onArtistSelect(artistName: string): void {
     this.selectedArtist = artistName;
     this.selectedMood = '';
@@ -161,19 +180,79 @@ clearSearchResults(): void {
     this.loadSidebarPlaylists();
     this.fetchListeningHistoryMetrics();
      this.restoreLastPlayedTrack();
+      this.loadYouTubeApi();
   }
-  restoreLastPlayedTrack(): void {
+  ngOnDestroy(): void {
+  this.clearProgressTracking();
+  if (this.ytPlayer) {
+    this.ytPlayer.destroy();
+  }
+}
+
+
+restoreLastPlayedTrack(): void {
   this.moodService.getRecentlyPlayed(this.getActiveUserId(), 1).subscribe({
     next: (songs: Song[]) => {
       if (songs && songs.length > 0) {
-        this.currentPlayingTrack = songs[0]; 
-        this.isPlaybackSuspended = true;       
-        this.safePlayerUrl = null;             
+        this.currentPlayingTrack = songs[0];
+        this.isPlaybackSuspended = true;
+        this.safePlayerUrl = null;
         this.cdr.detectChanges();
+
+
+        this.initPlayerPaused(songs[0].youTubeId);
       }
     },
     error: () => {} // new users have no history
   });
+}
+
+
+private initPlayerPaused(videoId: string): void {
+  this.clearProgressTracking();
+
+  const initPlayer = () => {
+    if (this.ytPlayer) {
+      this.ytPlayer.destroy();
+      this.ytPlayer = null;
+    }
+
+    this.ytPlayer = new (window as any).YT.Player('yt-hidden-player', {
+      height: '1',
+      width: '1',
+      videoId: videoId,
+      playerVars: {
+        autoplay: 0,       
+        controls: 0,
+        modestbranding: 1,
+        rel: 0,
+        enablejsapi: 1
+      },
+      events: {
+        onReady: (event: any) => {
+
+          const liveDuration = event.target.getDuration();
+          if (liveDuration > 0) {
+            this.totalTrackDuration = liveDuration;
+          }
+          this.cdr.detectChanges();
+  
+        },
+        onStateChange: (event: any) => {
+          if (event.data === 0 && this.currentPlayingTrack) {
+            this.handleTrackSkip(this.currentPlayingTrack);
+          }
+          this.cdr.detectChanges();
+        }
+      }
+    });
+  };
+
+  if ((window as any).YT && (window as any).YT.Player) {
+    initPlayer();
+  } else {
+    (window as any).onYouTubeIframeAPIReady = initPlayer;
+  }
 }
 
   loadSidebarPlaylists(): void {
@@ -502,25 +581,93 @@ handleTrackPlay(track: Song): void {
     this.statusMessage = `Streaming "${track.title}" background deck...`;
     this.spinUpAudioStream(track.youTubeId);
   }
-  private spinUpAudioStream(videoId: string): void {
-    const nativeEmbedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&enablejsapi=1&controls=0&modestbranding=1&rel=0`;
-    this.safePlayerUrl = this.sanitizer.bypassSecurityTrustResourceUrl(nativeEmbedUrl);
-    this.cdr.detectChanges();
-  }
+private spinUpAudioStream(videoId: string): void {
+  this.clearProgressTracking();
 
-  togglePlayPauseState(): void {
-    if (!this.currentPlayingTrack) return;
-    if (!this.isPlaybackSuspended) {
-      this.isPlaybackSuspended = true;
-      this.safePlayerUrl = null; 
-      this.statusMessage = `Playback paused: "${this.currentPlayingTrack.title}"`;
-    } else {
-      this.isPlaybackSuspended = false;
-      this.statusMessage = `Resuming: "${this.currentPlayingTrack.title}"`;
-      this.spinUpAudioStream(this.currentPlayingTrack.youTubeId);
+  const initPlayer = () => {
+    if (this.ytPlayer) {
+      this.ytPlayer.destroy();
+      this.ytPlayer = null;
     }
-    this.cdr.detectChanges();
+
+    this.ytPlayer = new (window as any).YT.Player('yt-hidden-player', {
+      height: '1',
+      width: '1',
+      videoId: videoId,
+      playerVars: {
+        autoplay: 1,
+        controls: 0,
+        modestbranding: 1,
+        rel: 0,
+        enablejsapi: 1
+      },
+      events: {
+        onReady: () => {
+          this.startProgressTracking();
+        },
+        onStateChange: (event: any) => {
+          if (event.data === 0 && this.currentPlayingTrack) {
+            this.handleTrackSkip(this.currentPlayingTrack);
+          }
+          this.cdr.detectChanges();
+        }
+      }
+    });
+  };
+
+  if ((window as any).YT && (window as any).YT.Player) {
+    initPlayer();
+  } else {
+    (window as any).onYouTubeIframeAPIReady = initPlayer;
   }
+}
+private startProgressTracking(): void {
+  this.clearProgressTracking();
+  this.progressInterval = setInterval(() => {
+    if (this.ytPlayer && this.ytPlayer.getCurrentTime) {
+      this.currentPlaybackTime = this.ytPlayer.getCurrentTime();
+      const liveDuration = this.ytPlayer.getDuration();
+      if (liveDuration > 0) {
+        this.totalTrackDuration = liveDuration;
+      }
+      this.cdr.detectChanges();
+    }
+  }, 1000);
+}
+
+private clearProgressTracking(): void {
+  if (this.progressInterval) {
+    clearInterval(this.progressInterval);
+    this.progressInterval = null;
+  }
+  this.currentPlaybackTime = 0;
+}
+
+formatTime(seconds: number): string {
+  if (!seconds || isNaN(seconds)) return '0:00';
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
+}
+
+
+
+togglePlayPauseState(): void {
+  if (!this.currentPlayingTrack || !this.ytPlayer) return;
+
+  if (!this.isPlaybackSuspended) {
+    this.isPlaybackSuspended = true;
+    this.ytPlayer.pauseVideo();
+    this.statusMessage = `Playback paused: "${this.currentPlayingTrack.title}"`;
+  } else {
+    this.isPlaybackSuspended = false;
+    this.ytPlayer.playVideo();
+    this.startProgressTracking();   
+                                     
+    this.statusMessage = `Resuming: "${this.currentPlayingTrack.title}"`;
+  }
+  this.cdr.detectChanges();
+}
 
   handleTrackLike(track: Song | null): void {
     if (!track) return;
@@ -806,13 +953,19 @@ this.moodService.getSongsByStrictGenre(finalGenreQuery).subscribe({
     }
   }
 
-  haltPlayback(): void {
-    this.currentPlayingTrack = null;
-    this.safePlayerUrl = null;
-    this.isPlaybackSuspended = false;
-    this.statusMessage = 'Playback session closed.';
-    this.cdr.detectChanges();
+haltPlayback(): void {
+  this.clearProgressTracking();
+  if (this.ytPlayer) {
+    this.ytPlayer.destroy();
+    this.ytPlayer = null;
   }
+  this.currentPlayingTrack = null;
+  this.safePlayerUrl = null;
+  this.isPlaybackSuspended = false;
+  this.totalTrackDuration = 0;
+  this.statusMessage = 'Playback session closed.';
+  this.cdr.detectChanges();
+}
 
   triggerLogout(): void { this.authService.logout(); }
 

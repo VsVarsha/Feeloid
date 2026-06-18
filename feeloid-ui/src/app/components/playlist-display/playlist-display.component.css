@@ -24,7 +24,7 @@
   text-align: left;
 }
 
-/* YouTube Music header style: muted gray uppercase labels */
+
 .playlist-table th {
   padding: 10px 16px;
   color: #aaaaaa;
@@ -60,7 +60,7 @@
   color: #b3b3b3;
 }
 
-/* Subtle flat tag badges matching your original layout tracking elements */
+
 .badge {
   padding: 4px 8px;
   border-radius: 4px;
@@ -85,7 +85,7 @@
   text-align: right;
 }
 
-/* Premium white tracking pill button structure */
+
 .start-playback-row-btn {
   display: inline-flex;
   align-items: center;
@@ -149,15 +149,15 @@
   border-bottom: 1px solid #1c1c1c;
 }
 
-/* Track rows spacing adjustments */
+
 .playlist-table td {
   padding: 14px 16px;
   color: #ffffff;
   font-size: 0.92rem;
-  border-bottom: 1px solid transparent; /* Remove solid white grid lines */
+  border-bottom: 1px solid transparent;
 }
 
-/* Row Hover micro-interactions */
+
 .track-row {
   border-bottom: 1px solid #0f0f0f;
   transition: background-color 0.15s ease;
@@ -196,7 +196,7 @@
   color: #b3b3b3;
 }
 
-/* Subtle flat tag badges matching your original layout tracking elements */
+
 .badge {
   padding: 4px 8px;
   border-radius: 4px;
@@ -221,7 +221,7 @@
   text-align: right;
 }
 
-/* Premium white tracking pill button structure */
+
 .start-playback-row-btn {
   display: inline-flex;
   align-items: center;
@@ -247,4 +247,47 @@
 .play-icon {
   font-size: 14px !important;
   font-variation-settings: 'FILL' 1;
+}
+/* ── NOW PLAYING ROW HIGHLIGHT ────────────────────────────── */
+.now-playing-row {
+  background-color: rgba(29, 185, 84, 0.08);
+  border-left: 3px solid #1db954;
+}
+
+.now-playing-text {
+  color: #1db954 !important;
+  font-weight: 600;
+}
+
+.now-playing-icon {
+  color: #1db954 !important;
+}
+
+.now-playing-paused-icon {
+  font-size: 18px;
+  color: #1db954;
+}
+
+
+.now-playing-bars {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 14px;
+}
+
+.now-playing-bars .bar {
+  width: 3px;
+  background-color: #1db954;
+  border-radius: 1px;
+  animation: bar-bounce 1s ease-in-out infinite;
+}
+
+.bar1 { height: 6px;  animation-delay: 0s; }
+.bar2 { height: 14px; animation-delay: 0.2s; }
+.bar3 { height: 9px;  animation-delay: 0.4s; }
+
+@keyframes bar-bounce {
+  0%, 100% { transform: scaleY(0.4); }
+  50%      { transform: scaleY(1); }
 }
